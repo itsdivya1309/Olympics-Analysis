@@ -20,6 +20,7 @@ athletes = pd.merge(athletes, country,
                     left_on='country_noc', right_on='noc', how='left')
 athletes = pd.merge(athletes, games, on='edition_id', how='left')
 
+st.sidebar.image('archive/download.png')
 st.sidebar.title('Summer Olympics Analysis')
 user_menu = st.sidebar.radio(
     'Select an Option',
