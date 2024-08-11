@@ -10,6 +10,7 @@ games = pd.read_csv('archive/Olympics_Games.csv')
 results = pd.read_csv('archive/Olympic_Results.csv')
 athletes = pd.read_csv('archive/Olympic_Athlete_Event_Results.csv')
 country = pd.read_csv('archive/Olympics_Country.csv')
+bio = pd.read_csv('archive/Olympic_Athlete_Bio.csv')
 
 medals = preprocessor.preprocess(medals)
 games = preprocessor.preprocess(games).loc[games['competition_date'] != '—']
@@ -24,8 +25,8 @@ user_menu = st.sidebar.radio(
     'Select an Option',
     ('Medal Tally', 
      'Overall Analysis', 
-     'Country-wise Analysis', 
-     'Athlete-wise Analysis')
+     'Country-wise Analysis'
+    )
 )
 
 # st.dataframe(df)
@@ -109,6 +110,13 @@ if user_menu == 'Overall Analysis':
     st.title('No of Athletes over the Years')
     athletes_over_time = helper.athletes_over_time(athletes)
     fig = px.line(athletes_over_time, x='Edition', y='No of Athletes')
+    st.plotly_chart(fig)
+
+    st.divider()
+
+    st.title('Men vs Women Participation over the Years')
+    df = helper.males_vs_females(athletes, bio)
+    fig = px.line(df, x='year', y=['Males','Females'])
     st.plotly_chart(fig)
 
     st.divider()

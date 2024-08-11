@@ -94,4 +94,13 @@ def country_athletes(df, country='India'):
     temp_df = temp_df['athlete'].value_counts().reset_index().head(15)
     temp_df = pd.merge(temp_df, df, on='athlete', how='left')[['athlete','count','sport','country']]
     temp_df.drop_duplicates(subset=['athlete'],inplace=True)
-    return temp_df   
+    return temp_df
+
+def males_vs_females(df, bio):
+    athletes = pd.merge(df, bio, on='athlete_id', how='left')
+    athletes.drop_duplicates(subset=['athlete','country_x'])
+    men = athletes.loc[athletes['sex']=='Male'].groupby('year')['athlete'].nunique().reset_index()
+    women = athletes.loc[athletes['sex']=='Female'].groupby('year')['athlete'].nunique().reset_index()
+    final = pd.merge(men, women, on='year')
+    final.rename({'athlete_x':'Males', 'athlete_y':'Females'}, axis=1, inplace=True)
+    return final
