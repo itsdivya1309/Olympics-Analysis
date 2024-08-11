@@ -8,12 +8,12 @@ def extract_season(edition):
     else:
         return 'na'
 
-def preprocess(medals):
+def preprocess(df):
 
     # Creating season column and filtering summer Olympics
-    medals['season'] = medals['edition'].apply(extract_season)
-    medals = medals[medals['season']=='Summer']
+    df['season'] = df['edition'].apply(extract_season)
+    df = df[df['season']=='Summer']
 
-    return medals
+    return df
 
 

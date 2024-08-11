@@ -58,3 +58,19 @@ def events_over_time(games, results):
     events_over_time = pd.DataFrame(summer_events.groupby('year')['sport'].nunique()).reset_index()
     events_over_time.rename(columns={'year':'Edition', 'sport':'No of Sports'}, inplace=True)
     return events_over_time
+
+def athletes_over_time(games, athletes):
+    athletes_edition = pd.merge(athletes, games, on='edition_id')
+    athletes_over_time = pd.DataFrame(athletes_edition.groupby('year')['athlete'].nunique()).reset_index()
+    athletes_over_time.rename({'year':'Edition', 'athlete': 'No of Athletes'}, axis=1, inplace=True)
+    return athletes_over_time
+
+def most_successful(df, sport):
+    temp_df = df.dropna(subset=['medal'])
+    if sport != 'Overall':
+        temp_df = temp_df.loc[temp_df['sport']==sport]
+    temp_df = temp_df['athlete'].value_counts().reset_index().head(15)
+    temp_df = pd.merge(temp_df, df, on='athlete', how='left')[['athlete','count','sport','country']]
+    temp_df.rename({'count': 'medal count'}, axis=1, inplace=True)
+    temp_df.drop_duplicates(subset=['athlete'],inplace=True)
+    return temp_df

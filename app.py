@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.express as px
 import preprocessor, helper
 
@@ -7,11 +9,14 @@ medals = pd.read_csv('archive/Olympic_Games_Medal_Tally.csv')
 games = pd.read_csv('archive/Olympics_Games.csv')
 results = pd.read_csv('archive/Olympic_Results.csv')
 athletes = pd.read_csv('archive/Olympic_Athlete_Event_Results.csv')
+country = pd.read_csv('archive/Olympics_Country.csv')
 
-df = preprocessor.preprocess(medals)
+medals = preprocessor.preprocess(medals)
 games = preprocessor.preprocess(games).loc[games['competition_date'] != '—']
 results = preprocessor.preprocess(results)
 athletes = preprocessor.preprocess(athletes)
+athletes = pd.merge(athletes, country, 
+                    left_on='country_noc', right_on='noc', how='left')
 
 st.sidebar.title('Summer Olympics Analysis')
 user_menu = st.sidebar.radio(
@@ -27,12 +32,12 @@ user_menu = st.sidebar.radio(
 if user_menu == 'Medal Tally':
     st.sidebar.header('Medal Tally')
 
-    years, countries = helper.country_year_list(df)
+    years, countries = helper.country_year_list(medals)
 
     selected_year = st.sidebar.selectbox('Select Year', years)
     selected_country = st.sidebar.selectbox('Select Country', countries)
 
-    medal_tally = helper.fetch_medal_tally(df, selected_year, selected_country)
+    medal_tally = helper.fetch_medal_tally(medals, selected_year, selected_country)
 
     if selected_year == 'Overall' and selected_country == 'Overall':
         st.title('Overall Medal Tally')
@@ -50,11 +55,11 @@ if user_menu == 'Medal Tally':
 
 if user_menu == 'Overall Analysis':
 
-    editions = df['year'].nunique()
+    editions = medals['year'].nunique()
     cities = games['city'].nunique()
     sports = results['sport'].nunique()
     events = results['event_title'].nunique()
-    nations = df['country'].nunique()
+    nations = medals['country'].nunique()
     n_athletes = athletes['athlete'].nunique()
 
 
@@ -87,11 +92,41 @@ if user_menu == 'Overall Analysis':
     st.divider()
 
     st.title('Participating Nations over the Years')
-    nations_over_time = helper.participating_nations_over_time(df)
+    nations_over_time = helper.participating_nations_over_time(medals)
     fig = px.line(nations_over_time, x='Edition', y='No of Countries')
     st.plotly_chart(fig)
 
-    st.title('No of Events over the Years')
+    st.divider()
+
+    st.title('No of Sports over the Years')
     events_over_years = helper.events_over_time(games, results)
     fig = px.line(events_over_years, x='Edition', y='No of Sports')
     st.plotly_chart(fig)
+
+    st.divider()
+
+    st.title('No of Athletes over the Years')
+    athletes_over_time = helper.athletes_over_time(games, athletes)
+    fig = px.line(athletes_over_time, x='Edition', y='No of Athletes')
+    st.plotly_chart(fig)
+
+    st.divider()
+
+    st.title('No of Events over the Years (in every Sport)')
+    fig, ax = plt.subplots(figsize=(20,20))
+    events = pd.merge(athletes, games, on='edition_id')
+    x = events.pivot_table(index='sport', columns='year', 
+        values='event', aggfunc=pd.Series.nunique).fillna(0).astype('int')
+    ax = sns.heatmap(x, annot=True)
+    st.pyplot(fig)
+
+    st.divider()
+
+    st.title('Most Successful Athletes')
+    sport_list = athletes['sport'].unique().tolist()
+    sport_list.sort()
+    sport_list.insert(0, 'Overall')
+
+    selected_sport = st.sidebar.selectbox('Select a Sport', sport_list)
+    candidates = helper.most_successful(athletes, selected_sport)
+    st.table(candidates)
