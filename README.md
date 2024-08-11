@@ -2,7 +2,7 @@
 
 Welcome to the **Olympics Data Analysis Project**! This project was inspired by the excitement and global unity brought about by the ongoing Olympics. As a passionate data enthusiast, I sought to channel my skills into a project that not only celebrates the spirit of the Olympics but also showcases my capabilities in data analysis, visualization, and storytelling.
 
-Streamlit app link: (https://itsdivya-olympics-data-analysis.streamlit.app/)[https://itsdivya-olympics-data-analysis.streamlit.app/]
+Streamlit app link: https://itsdivya-olympics-data-analysis.streamlit.app/
 
 ## 🎉 Introduction
 
