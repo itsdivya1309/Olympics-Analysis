@@ -59,9 +59,8 @@ def events_over_time(games, results):
     events_over_time.rename(columns={'year':'Edition', 'sport':'No of Sports'}, inplace=True)
     return events_over_time
 
-def athletes_over_time(games, athletes):
-    athletes_edition = pd.merge(athletes, games, on='edition_id')
-    athletes_over_time = pd.DataFrame(athletes_edition.groupby('year')['athlete'].nunique()).reset_index()
+def athletes_over_time(athletes):
+    athletes_over_time = pd.DataFrame(athletes.groupby('year')['athlete'].nunique()).reset_index()
     athletes_over_time.rename({'year':'Edition', 'athlete': 'No of Athletes'}, axis=1, inplace=True)
     return athletes_over_time
 
@@ -74,3 +73,25 @@ def most_successful(df, sport):
     temp_df.rename({'count': 'medal count'}, axis=1, inplace=True)
     temp_df.drop_duplicates(subset=['athlete'],inplace=True)
     return temp_df
+
+def yearwise_medals(df, country='India'):
+    temp_df = df.loc[df['country']==country]
+    return temp_df
+
+def sportswise_performance(df, country='India'):
+    temp_df = df.dropna(subset=['medal'])
+    temp_df = df.loc[df['country']==country]
+    temp_df.drop_duplicates(subset=['edition_id','country_noc_x',
+                                    'sport','event','result_id','pos',
+                                    'medal','isTeamSport'], inplace=True)
+    performance = temp_df.pivot_table(index='sport', columns='year', 
+                                      values='medal', aggfunc='count').fillna(0).astype('int')
+    return performance
+
+def country_athletes(df, country='India'):
+    temp_df = df.dropna(subset=['medal'])
+    temp_df = temp_df.loc[temp_df['country']==country]
+    temp_df = temp_df['athlete'].value_counts().reset_index().head(15)
+    temp_df = pd.merge(temp_df, df, on='athlete', how='left')[['athlete','count','sport','country']]
+    temp_df.drop_duplicates(subset=['athlete'],inplace=True)
+    return temp_df   

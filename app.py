@@ -17,6 +17,7 @@ results = preprocessor.preprocess(results)
 athletes = preprocessor.preprocess(athletes)
 athletes = pd.merge(athletes, country, 
                     left_on='country_noc', right_on='noc', how='left')
+athletes = pd.merge(athletes, games, on='edition_id', how='left')
 
 st.sidebar.title('Summer Olympics Analysis')
 user_menu = st.sidebar.radio(
@@ -106,7 +107,7 @@ if user_menu == 'Overall Analysis':
     st.divider()
 
     st.title('No of Athletes over the Years')
-    athletes_over_time = helper.athletes_over_time(games, athletes)
+    athletes_over_time = helper.athletes_over_time(athletes)
     fig = px.line(athletes_over_time, x='Edition', y='No of Athletes')
     st.plotly_chart(fig)
 
@@ -114,8 +115,7 @@ if user_menu == 'Overall Analysis':
 
     st.title('No of Events over the Years (in every Sport)')
     fig, ax = plt.subplots(figsize=(20,20))
-    events = pd.merge(athletes, games, on='edition_id')
-    x = events.pivot_table(index='sport', columns='year', 
+    x = athletes.pivot_table(index='sport', columns='year', 
         values='event', aggfunc=pd.Series.nunique).fillna(0).astype('int')
     ax = sns.heatmap(x, annot=True)
     st.pyplot(fig)
@@ -127,6 +127,32 @@ if user_menu == 'Overall Analysis':
     sport_list.sort()
     sport_list.insert(0, 'Overall')
 
+    st.sidebar.header('Overall Athletes Analysis')
     selected_sport = st.sidebar.selectbox('Select a Sport', sport_list)
     candidates = helper.most_successful(athletes, selected_sport)
     st.table(candidates)
+
+if user_menu == 'Country-wise Analysis':
+    st.sidebar.title('Most Successful Analysis')
+
+    countries = country['country'].unique().tolist()
+    selected_country = st.sidebar.selectbox('Select Country', countries)
+
+    st.header(selected_country+' Medal Tally over the years')
+
+    temp_df = helper.yearwise_medals(medals, selected_country)
+    fig = px.line(temp_df, x='year', y=['total', 'gold', 'silver', 'bronze'])
+    st.plotly_chart(fig)
+
+    st.divider()
+
+    st.header(selected_country+ ' Performance in different sports')
+    x = helper.sportswise_performance(athletes, selected_country)
+    fig, ax = plt.subplots(figsize=(20,20))
+    ax = sns.heatmap(x, annot=True)
+    st.pyplot(fig)
+
+    st.divider()
+    st.header('Most Successful Athletes of '+selected_country)
+    players = helper.country_athletes(athletes, selected_country)
+    st.table(players)
